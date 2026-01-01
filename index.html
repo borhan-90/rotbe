@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fa">
+
+<head>
+    <meta charset="UTF-8">
+    <title>بازی پایتون نسخه وب</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #222;
+        }
+
+        canvas {
+            background: #fff;
+            touch-action: none;
+        }
+
+        /* جلوگیری از اسکرول تصادفی */
+    </style>
+    <link rel="icon" href="icon.png">
+</head>
+
+<body>
+
+    <canvas id="gameCanvas" width="450" height="800"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let st = true;
+        let sabt = false;
+        let t = 0;
+        let n = 0;
+        let rotk = [];
+        let rotv = [];
+
+        // تصاویر اصلی
+        const img = new Image(); img.src = 'safhe.png';
+        const imgt = new Image(); imgt.src = 't.png';
+        const imgs = new Image(); imgs.src = 's.png';
+
+        // لیست تصاویر بزرگ و کوچک
+        let l = [], l2 = [];
+        for (let i = 1; i <= 30; i++) {
+            let big = new Image(); big.src =  i + '.png'; l.push(big);
+            let small = new Image(); small.src = 'small' + i + '.png'; l2.push(small);
+        }
+
+        // گرفتن مختصات موس یا لمس
+        function getPos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            let a, b;
+            if (evt.touches) { // لمسی
+                a = evt.touches[0].clientX - rect.left;
+                b = evt.touches[0].clientY - rect.top;
+            } else { // موس
+                a = evt.clientX - rect.left;
+                b = evt.clientY - rect.top;
+            }
+            return { a, b };
+        }
+
+        // هندل کردن کلیک یا لمس
+        function handleClick(evt) {
+            const { a, b } = getPos(evt);
+
+            // دکمه استارت/ثبت
+            if (378 >= a && a >= 145 && 592 >= b && b >= 500) {
+                if (st) { st = false; sabt = true; }
+                else if (!sabt && t < 10) { st = true; }
+            }
+
+            // انتخاب خانه‌ها
+            if (sabt) {
+                for (let i = 0; i < 10; i++) {
+                    if (70 >= a && a >= 20 && (i * 59 + 175) >= b && b >= (i * 59 + 125)) {
+                        if (!rotk.includes(i)) {
+                            rotk.push(i);
+                            rotv.push(n);
+                            t++;
+                            sabt = false;
+                        }
+                    }
+                }
+            }
+            evt.preventDefault(); // جلوگیری از اسکرول صفحه هنگام لمس
+        }
+
+        canvas.addEventListener('mousedown', handleClick);
+        canvas.addEventListener('touchstart', handleClick);
+
+        // حلقه اصلی بازی
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // تصویر پس‌زمینه
+            ctx.drawImage(img, 0, 0);
+
+            // خانه‌ها
+            for (let i = 0; i < 10; i++) {
+                ctx.fillStyle = 'rgb(255,236,157)';
+                ctx.fillRect(20, i * 59 + 125, 50, 50);
+            }
+
+            // تصویر بزرگ فعلی
+            ctx.drawImage(l[n], 145, 50);
+
+            // دکمه‌ها
+            if (st) {
+                ctx.drawImage(imgt, 145, 500);
+                n++;
+                while (rotv.includes(n)) n++;
+                if (n > 29) n = 0;
+            } else {
+                ctx.drawImage(imgs, 145, 500);
+            }
+
+            // تصاویر کوچک در خانه‌ها
+            for (let i = 0; i < rotk.length; i++) {
+                ctx.drawImage(l2[rotv[i]], 20, rotk[i] * 59 + 125);
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        // شروع حلقه بازی
+        draw();
+    </script>
+
+</body>
+
+</html>
